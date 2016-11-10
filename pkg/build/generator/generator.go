@@ -383,6 +383,7 @@ func (g *BuildGenerator) createBuild(ctx kapi.Context, build *buildapi.Build) (*
 // the current build strategy with a binary artifact for this specific build.
 // Takes a BuildConfig to base the build on, and an optional SourceRevision to build.
 func (g *BuildGenerator) generateBuildFromConfig(ctx kapi.Context, bc *buildapi.BuildConfig, revision *buildapi.SourceRevision, binary *buildapi.BinaryBuildSource) (*buildapi.Build, error) {
+	//lgx 可以在config中配置sa，如果没有可配置使用generator中了配置的sa，最后使用默认的builder sa
 	serviceAccount := bc.Spec.ServiceAccount
 	if len(serviceAccount) == 0 {
 		serviceAccount = g.DefaultServiceAccountName
@@ -392,24 +393,25 @@ func (g *BuildGenerator) generateBuildFromConfig(ctx kapi.Context, bc *buildapi.
 	}
 	// Need to copy the buildConfig here so that it doesn't share pointers with
 	// the build object which could be (will be) modified later.
+	//lgx copy source是指针，为什么不用deepcopy?
 	obj, _ := kapi.Scheme.Copy(bc)
 	bcCopy := obj.(*buildapi.BuildConfig)
 	build := &buildapi.Build{
 		Spec: buildapi.BuildSpec{
 			CommonSpec: buildapi.CommonSpec{
-				ServiceAccount:            serviceAccount,
-				Source:                    bcCopy.Spec.Source,
-				Strategy:                  bcCopy.Spec.Strategy,
-				Output:                    bcCopy.Spec.Output,
-				Revision:                  revision,
-				Resources:                 bcCopy.Spec.Resources,
-				PostCommit:                bcCopy.Spec.PostCommit,
-				CompletionDeadlineSeconds: bcCopy.Spec.CompletionDeadlineSeconds,
-				NodeSelector:              bcCopy.Spec.NodeSelector,
+				ServiceAccount:            serviceAccount,//lgx build pod->sa->secret
+				Source:                    bcCopy.Spec.Source,//lgx bin dockerfile image git
+				Strategy:                  bcCopy.Spec.Strategy,//lgx docker sti custom jenkins
+				Output:                    bcCopy.Spec.Output,//lgx ??
+				Revision:                  revision,//lgx 这里单独赋值revision主要是revision是实时变化的,比如git repo触发
+				Resources:                 bcCopy.Spec.Resources, //lgx node资源cpu、mem
+				PostCommit:                bcCopy.Spec.PostCommit,//lgx 把输出image 在commit本地后，push到仓库前的调用的命令hook,具体的用途
+				CompletionDeadlineSeconds: bcCopy.Spec.CompletionDeadlineSeconds,//lgx 单次build的最长持续时间
+				NodeSelector:              bcCopy.Spec.NodeSelector,//lgx ??
 			},
 		},
 		ObjectMeta: kapi.ObjectMeta{
-			Labels: bcCopy.Labels,
+			Labels: bcCopy.Labels,//lgx 对象的元数据只赋值了label? enough?
 		},
 		Status: buildapi.BuildStatus{
 			Phase: buildapi.BuildPhaseNew,
@@ -420,12 +422,16 @@ func (g *BuildGenerator) generateBuildFromConfig(ctx kapi.Context, bc *buildapi.
 			},
 		},
 	}
+
+	//lgx 为什么binary单独进行处理了
 	if binary != nil {
 		build.Spec.Source.Git = nil
 		build.Spec.Source.Binary = binary
+		//lgx binary怎么与dockerfile有关系了?
 		if build.Spec.Source.Dockerfile != nil && binary.AsFile == "Dockerfile" {
 			build.Spec.Source.Dockerfile = nil
 		}
+		//lgx else 的情况??
 	} else {
 		// must explicitly set this because we copied the source values from the buildconfig.
 		build.Spec.Source.Binary = nil

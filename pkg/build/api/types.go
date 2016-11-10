@@ -104,7 +104,7 @@ type CommonSpec struct {
 	Resources kapi.ResourceRequirements
 
 	// PostCommit is a build hook executed after the build output image is
-	// committed, before it is pushed to a registry.
+	// committed, before it is pushed to a registry
 	PostCommit BuildPostCommitSpec
 
 	// CompletionDeadlineSeconds is an optional duration in seconds, counted from

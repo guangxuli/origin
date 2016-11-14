@@ -405,7 +405,8 @@ func (g *BuildGenerator) generateBuildFromConfig(ctx kapi.Context, bc *buildapi.
 				Output:                    bcCopy.Spec.Output,//lgx ??
 				Revision:                  revision,//lgx 这里单独赋值revision主要是revision是实时变化的,比如git repo触发
 				Resources:                 bcCopy.Spec.Resources, //lgx node资源cpu、mem
-				PostCommit:                bcCopy.Spec.PostCommit,//lgx 把输出image 在commit本地后，push到仓库前的调用的命令hook,具体的用途
+				PostCommit:                bcCopy.Spec.PostCommit,//lgx 把输出的image 保存在commit本地后，push到仓库前的调用的命令hook,具体的用途
+				//lgx build hook https://docs.openshift.org/latest/dev_guide/builds.html#build-hooks
 				CompletionDeadlineSeconds: bcCopy.Spec.CompletionDeadlineSeconds,//lgx 单次build的最长持续时间
 				NodeSelector:              bcCopy.Spec.NodeSelector,//lgx ??
 			},
@@ -459,6 +460,8 @@ func (g *BuildGenerator) generateBuildFromConfig(ctx kapi.Context, bc *buildapi.
 	}
 	strategyImageChangeTrigger := getStrategyImageChangeTrigger(bc)
 
+
+
 	// Resolve image source if present
 	for i, sourceImage := range build.Spec.Source.Images {
 		if sourceImage.PullSecret == nil {
@@ -494,6 +497,10 @@ func (g *BuildGenerator) generateBuildFromConfig(ctx kapi.Context, bc *buildapi.
 	// If the Build is using a From reference instead of a resolved image, we need to resolve that From
 	// reference to a valid image so we can run the build.  Builds do not consume ImageStream references,
 	// only image specs.
+	//lgx 这里意思是build本身并不能够处理imagestream之类与镜像相关的引用,需要转换成可直接识别的image
+	//lgx 下面这最好重新封装一下,下面的主要功能是更新build中的from/RuntimeImage image以及pullsecret
+	//lgx 如果有上一次触发的imageid，那么直接使用这个id作为image
+
 	var image string
 	if strategyImageChangeTrigger != nil {
 		image = strategyImageChangeTrigger.LastTriggeredImageID
@@ -577,7 +584,7 @@ func (g *BuildGenerator) resolveImageStreamReference(ctx kapi.Context, from kapi
 	} else {
 		namespace = defaultNamespace
 	}
-
+	//lgx https://docs.openshift.org/latest/dev_guide/managing_images.html#referencing-images-in-image-streams
 	glog.V(4).Infof("Resolving ImageStreamReference %s of Kind %s in namespace %s", from.Name, from.Kind, namespace)
 	switch from.Kind {
 	case "ImageStreamImage":

@@ -84,6 +84,12 @@ type CommonSpec struct {
 	// ServiceAccount is the name of the ServiceAccount to use to run the pod
 	// created by this build.
 	// The pod will be allowed to use secrets referenced by the ServiceAccount.
+	//lgx pod->sa->secret relation
+	//	     pod
+	//	  |   |   |
+	//       sa1 sa2 sa3
+	//     |   |   |   |   |
+	//secret1 s2   s3  s2  s1
 	ServiceAccount string
 
 	// Source describes the SCM in use.
@@ -325,6 +331,7 @@ type BuildSource struct {
 	// the base64 encoded credentials. Supported auth methods are: ssh-privatekey.
 	// TODO: This needs to move under the GitBuildSource struct since it's only
 	// used for git authentication
+	// lgx 这个secret仅仅在拉代码的时候使用，且位置不对
 	SourceSecret *kapi.LocalObjectReference
 
 	// Secrets represents a list of secrets and their destinations that will
@@ -707,6 +714,7 @@ type BuildConfigSpec struct {
 	// Triggers determine how new Builds can be launched from a BuildConfig. If
 	// no triggers are defined, a new build can only occur as a result of an
 	// explicit client build creation.
+	// lgx 注意这里自己之前的理解有些局限，trigger与具体的build source类型是没有直接联系的，比如说source类型，它的trigger，可以有很多种
 	Triggers []BuildTriggerPolicy
 
 	// RunPolicy describes how the new build created from this build

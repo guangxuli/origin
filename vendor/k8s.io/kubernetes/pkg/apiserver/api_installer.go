@@ -68,7 +68,7 @@ func (a *APIInstaller) Install(ws *restful.WebService) (apiResources []unversion
 
 	proxyHandler := (&ProxyHandler{
 		prefix:              a.prefix + "/proxy/",
-		storage:             a.group.Storage,
+		storage:             a.group.Storage,  //lgx 保存了各个api资源对象
 		serializer:          a.group.Serializer,
 		context:             a.group.Context,
 		requestInfoResolver: a.info,
@@ -83,6 +83,7 @@ func (a *APIInstaller) Install(ws *restful.WebService) (apiResources []unversion
 	}
 	sort.Strings(paths)
 	for _, path := range paths {
+		//lgx 比较复杂的函数实现registerResourceHandlers， 了解就ok了,有需要再深入研究
 		apiResource, err := a.registerResourceHandlers(path, a.group.Storage[path], ws, proxyHandler)
 		if err != nil {
 			errors = append(errors, fmt.Errorf("error in registering resource: %s, %v", path, err))
@@ -95,6 +96,7 @@ func (a *APIInstaller) Install(ws *restful.WebService) (apiResources []unversion
 }
 
 // NewWebService creates a new restful webservice with the api installer's prefix and version.
+//lgx note
 func (a *APIInstaller) NewWebService() *restful.WebService {
 	ws := new(restful.WebService)
 	ws.Path(a.prefix)
@@ -200,6 +202,7 @@ func (a *APIInstaller) registerResourceHandlers(path string, storage rest.Storag
 	hasSubresource := len(subresource) > 0
 
 	// what verbs are supported by the storage, used to know what verbs we support per path
+	// 这个主要是知道每个资源对象的支持的操作，增删改查等, 注意第二个值标识是否支持这个操作的结果， Great
 	creater, isCreater := storage.(rest.Creater)
 	namedCreater, isNamedCreater := storage.(rest.NamedCreater)
 	lister, isLister := storage.(rest.Lister)

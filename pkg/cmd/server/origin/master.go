@@ -169,6 +169,7 @@ func (fn APIInstallFunc) InstallAPI(container *restful.Container) ([]string, err
 // All endpoints get configured CORS behavior
 // Protected installers' endpoints are protected by API authentication and authorization.
 // Unprotected installers' endpoints do not have any additional protection added.
+// lgx api 注册从这里开始
 func (c *MasterConfig) Run(protected []APIInstaller, unprotected []APIInstaller) {
 	var extra []string
 
@@ -176,6 +177,7 @@ func (c *MasterConfig) Run(protected []APIInstaller, unprotected []APIInstaller)
 	open := genericapiserver.NewHandlerContainer(http.NewServeMux(), kapi.Codecs)
 
 	// enforce authentication on protected endpoints
+	//lgx note this -- InstallProtectedAPI
 	protected = append(protected, APIInstallFunc(c.InstallProtectedAPI))
 	for _, i := range protected {
 		msgs, err := i.InstallAPI(safe)
@@ -428,6 +430,7 @@ func (c *MasterConfig) InitializeObjects() {
 
 func (c *MasterConfig) InstallProtectedAPI(container *restful.Container) ([]string, error) {
 	// initialize OpenShift API
+	// lgx 这里是获取所有api需要注册的对象,然后进行分别注册
 	storage := c.GetRestStorage()
 
 	messages := []string{}
@@ -435,6 +438,7 @@ func (c *MasterConfig) InstallProtectedAPI(container *restful.Container) ([]stri
 	currentAPIVersions := []string{}
 
 	if configapi.HasOpenShiftAPILevel(c.Options, OpenShiftAPIV1) {
+		//lgx 启动websevece为api对象
 		if err := c.apiLegacyV1(storage).InstallREST(container); err != nil {
 			glog.Fatalf("Unable to initialize v1 API: %v", err)
 		}
@@ -914,11 +918,13 @@ func (c *MasterConfig) defaultAPIGroupVersion() *apiserver.APIGroupVersion {
 func (c *MasterConfig) apiLegacyV1(all map[string]rest.Storage) *apiserver.APIGroupVersion {
 	storage := make(map[string]rest.Storage)
 	for k, v := range all {
+		//lgx ??
 		if excludedV1Types.Has(k) {
 			continue
 		}
 		storage[strings.ToLower(k)] = v
 	}
+	//lgx ??
 	version := c.defaultAPIGroupVersion()
 	version.Storage = storage
 	version.GroupVersion = v1.SchemeGroupVersion

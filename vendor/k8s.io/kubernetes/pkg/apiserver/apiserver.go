@@ -138,9 +138,12 @@ var _ APIResourceLister = &staticLister{}
 // InstallREST registers the REST handlers (storage, watch, proxy and redirect) into a restful Container.
 // It is expected that the provided path root prefix will serve all operations. Root MUST NOT end
 // in a slash.
+// lgx note this
 func (g *APIGroupVersion) InstallREST(container *restful.Container) error {
 	installer := g.newInstaller()
+	//lgx 创建一个网络服务
 	ws := installer.NewWebService()
+	//lgx 如果成功，返回一个api source -name/namespace/kind
 	apiResources, registrationErrors := installer.Install(ws)
 	lister := g.ResourceLister
 	if lister == nil {

@@ -371,9 +371,11 @@ type buildConfigInstantiator struct {
 	newBuild           *buildapi.Build
 	err                error
 }
-
+//lgx caller controller image change test
+//lgx caller registry buildconfiginstantiate
 func (i *buildConfigInstantiator) Instantiate(namespace string, request *buildapi.BuildRequest) (*buildapi.Build, error) {
 	i.name = request.Name
+	//lgx 根据build request 实例化build
 	return i.generator.Instantiate(kapi.WithNamespace(kapi.NewContext(), namespace), request)
 }
 

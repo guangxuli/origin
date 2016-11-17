@@ -141,6 +141,7 @@ func findImageChangeTrigger(bc *buildapi.BuildConfig, ref *kapi.ObjectReference)
 		if trigger.Type != buildapi.ImageChangeBuildTriggerType {
 			continue
 		}
+		//lgx 获取trigger的两个位置一个是trigger 一个是stragety
 		imageChange := trigger.ImageChange
 		triggerRef := imageChange.From
 		if triggerRef == nil {
@@ -212,12 +213,14 @@ func updateBuildEnv(strategy *buildapi.BuildStrategy, env []kapi.EnvVar) {
 }
 
 // Instantiate returns a new Build object based on a BuildRequest object
+//lgx build request->bc(bccopy)->build
 func (g *BuildGenerator) Instantiate(ctx kapi.Context, request *buildapi.BuildRequest) (*buildapi.Build, error) {
 	glog.V(4).Infof("Generating Build from %s", describeBuildRequest(request))
 	bc, err := g.Client.GetBuildConfig(ctx, request.Name)
 	if err != nil {
 		return nil, err
 	}
+	//lgx bc paused 是什么概念??--暂停 F:\DevReadOnly\go\src\github.com\openshift\origin\pkg\build\cmd\reaper.go#101
 	if buildutil.IsPaused(bc) {
 		return nil, errors.NewBadRequest(fmt.Sprintf("can't instantiate from BuildConfig %s/%s: BuildConfig is paused", bc.Namespace, bc.Name))
 	}
@@ -256,6 +259,7 @@ func (g *BuildGenerator) Instantiate(ctx kapi.Context, request *buildapi.BuildRe
 
 	// need to update the BuildConfig because LastVersion and possibly
 	// LastTriggeredImageID changed
+	//lgx 经过该实例化的过程buildconfig中的lastversion自增加一次，同时LastTriggeredImageID有可能变化
 	if err := g.Client.UpdateBuildConfig(ctx, bc); err != nil {
 		glog.V(4).Infof("Failed to update BuildConfig %s/%s so no Build will be created", bc.Namespace, bc.Name)
 		return nil, err

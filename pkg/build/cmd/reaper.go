@@ -97,6 +97,7 @@ func (reaper *BuildConfigReaper) Stop(namespace, name string, timeout time.Durat
 			}
 
 			// Set the annotation and update
+			//lgx 设置buildconfig暂停--buildconfig实例化build的时候需要判断这个
 			if err := util.AddObjectAnnotations(bc, map[string]string{buildapi.BuildConfigPausedAnnotation: "true"}); err != nil {
 				return err
 			}

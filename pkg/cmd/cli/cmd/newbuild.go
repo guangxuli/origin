@@ -87,8 +87,8 @@ type NewBuildOptions struct {
 	Config *newcmd.AppConfig
 
 	BaseName    string
-	CommandPath string
-	CommandName string
+	CommandPath stringstring
+	CommandName
 
 	In            io.Reader
 	Out, ErrOut   io.Writer
@@ -192,6 +192,7 @@ func (o *NewBuildOptions) Complete(baseName, commandName string, f *clientcmd.Fa
 	if err := CompleteAppConfig(o.Config, f, c, args); err != nil {
 		return err
 	}
+	//lgx 这个参数的就是从标准输入读取dockerfile，也就是直接输入
 	if o.Config.Dockerfile == "-" {
 		data, err := ioutil.ReadAll(in)
 		if err != nil {
@@ -231,7 +232,7 @@ func (o *NewBuildOptions) RunNewBuild() error {
 	if o.Action.ShouldPrint() {
 		return o.PrintObject(result.List)
 	}
-
+	//lgx ??
 	if errs := o.Action.WithMessage(configcmd.CreateMessage(config.Labels), "created").Run(result.List, result.Namespace); len(errs) > 0 {
 		return cmdutil.ErrExit
 	}
@@ -243,6 +244,7 @@ func (o *NewBuildOptions) RunNewBuild() error {
 	indent := o.Action.DefaultIndent()
 	for _, item := range result.List.Items {
 		switch t := item.(type) {
+		//lgx 这里的意思就是前面所有的能创建的对象在server端应该已经创建ok了，但是是否运行还不确定，所以判断如果运行的话，进行日志监控
 		case *buildapi.BuildConfig:
 			if len(t.Spec.Triggers) > 0 && t.Spec.Source.Binary == nil {
 				fmt.Fprintf(out, "%sBuild configuration %q created and build triggered.\n", indent, t.Name)

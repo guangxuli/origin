@@ -183,12 +183,13 @@ func Resolve(r *Resolvers, c *ComponentInputs, g *GenerationInputs) (*ResolvedCo
 // should be built using Docker, and then returns the full list of source repositories.
 func AddSourceRepositoriesToRefBuilder(b *app.ReferenceBuilder, repos []string, g *GenerationInputs) (app.SourceRepositories, error) {
 	strategy := g.Strategy
+	//没有指明stragety 默认是source类型
 	if strategy == generate.StrategyUnspecified {
 		strategy = generate.StrategySource
 	}
 	for _, s := range repos {
 		if repo, ok := b.AddSourceRepository(s, strategy); ok {
-			repo.SetContextDir(g.ContextDir)
+			repo.SetContextDir(g.ContextDir)// 所有的repo用一个子目录信息??
 		}
 	}
 	if len(g.Dockerfile) > 0 {
@@ -203,7 +204,7 @@ func AddSourceRepositoriesToRefBuilder(b *app.ReferenceBuilder, repos []string, 
 	return result, kutilerrors.NewAggregate(errs)
 }
 
-// AddDockerfile adds a Dockerfile passed in the command line to the reference
+// AddDockerfileToSourceRepositories adds a Dockerfile passed in the command line to the reference
 // builder.
 func AddDockerfileToSourceRepositories(b *app.ReferenceBuilder, dockerfile string) error {
 	_, repos, errs := b.Result()
@@ -226,7 +227,7 @@ func AddDockerfileToSourceRepositories(b *app.ReferenceBuilder, dockerfile strin
 			return fmt.Errorf("provided Dockerfile is not valid: %v", err)
 		}
 	default:
-		// Invalid.
+		// Invalid. //docker file可以用在source repo为0或者1的配置中
 		return errors.New("--dockerfile cannot be used with multiple source repositories")
 	}
 	return nil

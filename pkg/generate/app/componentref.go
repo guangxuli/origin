@@ -17,6 +17,7 @@ func IsComponentReference(s string) bool {
 	if len(s) == 0 {
 		return false
 	}
+	//lgx ?? +
 	all := strings.Split(s, "+")
 	_, _, _, err := componentWithSource(all[0])
 	return err == nil

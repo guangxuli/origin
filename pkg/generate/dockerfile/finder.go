@@ -9,7 +9,7 @@ import (
 )
 
 type StatFunc func(path string) (os.FileInfo, error)
-
+//lgx 是否有存在给出的Dockerfile
 func (t StatFunc) Has(dir string) (string, bool, error) {
 	path := filepath.Join(dir, "Dockerfile")
 	_, err := t(path)
@@ -21,7 +21,17 @@ func (t StatFunc) Has(dir string) (string, bool, error) {
 	}
 	return path, true, nil
 }
-
+func (t tester) Has(dir string) (string, bool, error) {
+	path := filepath.Join(dir, "Jenkinsfile")
+	_, err := os.Stat(path)
+	if os.IsNotExist(err) {
+		return "", false, nil
+	}
+	if err != nil {
+		return "", false, err
+	}
+	return path, true, nil
+}
 func NewTester() generate.Tester {
 	return StatFunc(os.Stat)
 }

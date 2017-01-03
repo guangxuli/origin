@@ -15,6 +15,9 @@ const s2iScriptsLabel = "io.openshift.s2i.scripts-url"
 
 // IsBuilderImage checks whether the provided Docker image is
 // a builder image or not
+//检查dockerimages是否是builder images
+// 1. image信息中有 s2iScriptsLabel label
+// 2. image信息env有STI_LOCATION", "STI_SCRIPTS_URL", "STI_BUILDER" 这几个环境变量
 func IsBuilderImage(image *imageapi.DockerImage) bool {
 	if image.Config == nil {
 		return false

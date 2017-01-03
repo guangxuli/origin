@@ -73,7 +73,7 @@ func IsPossibleSourceRepository(s string) bool {
 
 // IsRemoteRepository checks whether the provided string is a remote repository or not
 func IsRemoteRepository(s string) bool {
-	if !s2igit.New(s2iutil.NewFileSystem()).ValidCloneSpecRemoteOnly(s) {
+	if !s2igit.New(s2iutil.NewFileSystem()).ValidCloneSpecRemoteOnly(s) { //lgx 检查是否是一个有效的git repo
 		return false
 	}
 	url, err := url.Parse(s)
@@ -81,7 +81,7 @@ func IsRemoteRepository(s string) bool {
 		return false
 	}
 	url.Fragment = ""
-	gitRepo := git.NewRepository()
+	gitRepo := git.NewRepository() //lgx NewRepository 实现了所有openshift使用的操作
 	if _, _, err := gitRepo.ListRemote(url.String()); err != nil {
 		return false
 	}

@@ -18,6 +18,7 @@ import (
 	_ "k8s.io/kubernetes/pkg/apis/autoscaling/install"
 	_ "k8s.io/kubernetes/pkg/apis/batch/install"
 	_ "k8s.io/kubernetes/pkg/apis/extensions/install"
+	"fmt"
 )
 
 func main() {
@@ -32,6 +33,7 @@ func main() {
 	}
 
 	basename := filepath.Base(os.Args[0])
+	fmt.Println(basename)
 	command := cli.CommandFor(basename)
 	if err := command.Execute(); err != nil {
 		os.Exit(1)

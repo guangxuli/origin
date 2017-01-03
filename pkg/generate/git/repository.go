@@ -19,7 +19,7 @@ import (
 
 	s2iapi "github.com/openshift/source-to-image/pkg/api"
 )
-
+//lgx 实现了openshift使用的git所有操作
 // Repository represents a git source repository
 type Repository interface {
 	GetRootDir(dir string) (string, error)
@@ -73,7 +73,7 @@ type execGitFunc func(dir string, args ...string) (string, string, error)
 type timedExecGitFunc func(timeout time.Duration, dir string, args ...string) (string, string, error)
 
 type repository struct {
-	git      execGitFunc
+	git      execGitFunc //lgx 实际就是调用exec来执行git 相关的命令
 	timedGit timedExecGitFunc
 
 	shallow bool

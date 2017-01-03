@@ -116,7 +116,7 @@ To search templates, image streams, and Docker images that match the arguments p
   %[1]s %[2]s -S --docker-image=python
 `
 )
-
+//lgx book
 type NewAppOptions struct {
 	Action configcmd.BulkAction
 	Config *newcmd.AppConfig
@@ -134,7 +134,7 @@ type NewAppOptions struct {
 
 // NewCmdNewApplication implements the OpenShift cli new-app command.
 func NewCmdNewApplication(name, baseName string, f *clientcmd.Factory, in io.Reader, out, errout io.Writer) *cobra.Command {
-	config := newcmd.NewAppConfig()
+	config := newcmd.NewAppConfig()//lgx 赋值了语言detector、dockerfile、jenkinsfile detector
 	config.Deploy = true
 	o := &NewAppOptions{Config: config}
 
@@ -196,18 +196,26 @@ func (o *NewAppOptions) Complete(baseName, commandName string, f *clientcmd.Fact
 	o.In = in
 	o.Out = out
 	o.ErrOut = errout
-	o.Output = kcmdutil.GetFlagString(c, "output")
+	o.Output = kcmdutil.GetFlagString(c, "output") //lgx 取output这个字段的名字，json yaml go-template ...
+
+	fmt.Printf("DEBUG o.Output = %s", o.Output)
+
 	// Only output="" should print descriptions of intermediate steps. Everything
 	// else should print only some specific output (json, yaml, go-template, ...)
 	o.Config.In = o.In
 	if len(o.Output) == 0 {
 		o.Config.Out = o.Out
 	} else {
+		//lgx 如果有output类型
 		o.Config.Out = ioutil.Discard
 	}
 	o.Config.ErrOut = o.ErrOut
 
 	o.Action.Out, o.Action.ErrOut = o.Out, o.ErrOut
+
+
+
+	//lgx bulk ??
 	o.Action.Bulk.Mapper = clientcmd.ResourceMapper(f)
 	o.Action.Bulk.Op = configcmd.Create
 	// Retry is used to support previous versions of the API server that will
@@ -438,6 +446,7 @@ func installationComplete(c kcoreclient.PodInterface, name string, out io.Writer
 }
 
 func setAppConfigLabels(c *cobra.Command, config *newcmd.AppConfig) error {
+	//lgx labels 给所有这次构建产生的对象进行统一标识
 	labelStr := kcmdutil.GetFlagString(c, "labels")
 	if len(labelStr) != 0 {
 		var err error
@@ -486,10 +495,13 @@ func CompleteAppConfig(config *newcmd.AppConfig, f *clientcmd.Factory, c *cobra.
 	if err != nil {
 		return err
 	}
+
+	//lgx 赋值各种client
 	config.KubeClient = kclient
 	dockerClient, _ := getDockerClient()
+	//lgx 各种资源的资源的searcher imagestream template templatefile
 	config.SetOpenShiftClient(osclient, namespace, dockerClient)
-
+	//lgx ??
 	if config.AllowSecretUse {
 		cfg, err := f.ClientConfig()
 		if err != nil {
@@ -497,7 +509,8 @@ func CompleteAppConfig(config *newcmd.AppConfig, f *clientcmd.Factory, c *cobra.
 		}
 		config.SecretAccessor = newConfigSecretRetriever(cfg)
 	}
-
+	fmt.Printf("args : %v", args)
+	//lgx 返回不识别的参数
 	unknown := config.AddArguments(args)
 	if len(unknown) != 0 {
 		return kcmdutil.UsageError(c, "Did not recognize the following arguments: %v", unknown)
@@ -506,7 +519,7 @@ func CompleteAppConfig(config *newcmd.AppConfig, f *clientcmd.Factory, c *cobra.
 	if config.AllowMissingImages && config.AsSearch {
 		return kcmdutil.UsageError(c, "--allow-missing-images and --search are mutually exclusive.")
 	}
-
+	//lgx usef by oc new-build not oc new-app
 	if len(config.SourceImage) != 0 && len(config.SourceImagePath) == 0 {
 		return kcmdutil.UsageError(c, "--source-image-path must be specified when --source-image is specified.")
 	}

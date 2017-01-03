@@ -270,7 +270,21 @@ func NewCmdKubectl(name string, out io.Writer) *cobra.Command {
 func CommandFor(basename string) *cobra.Command {
 	var cmd *cobra.Command
 
+	//了解in，out，errout的位置
+	//Stdin  = NewFile(uintptr(syscall.Stdin), "/dev/stdin")
+	//Stdout = NewFile(uintptr(syscall.Stdout), "/dev/stdout")
+	//Stderr = NewFile(uintptr(syscall.Stderr), "/dev/stderr")
 	in, out, errout := os.Stdin, os.Stdout, os.Stderr
+	//stderr -> /proc/self/fd/2
+	//stdin -> /proc/self/fd/0
+	//stdout -> /proc/self/fd/1
+	//lrwx------ 1 root root 64 Jan  3 10:45 /proc/self/fd/1 -> /dev/pts/3
+	//[root@openshift-node dev]# ls -la  /proc/self/fd/0
+	//lrwx------ 1 root root 64 Jan  3 10:45 /proc/self/fd/0 -> /dev/pts/3
+	//[root@openshift-node dev]# ls -la  /proc/self/fd/2
+	//lrwx------ 1 root root 64 Jan  3 10:45 /proc/self/fd/2 -> /dev/pts/3
+
+	// /dev/pts/3
 
 	// Make case-insensitive and strip executable suffix if present
 	if runtime.GOOS == "windows" {

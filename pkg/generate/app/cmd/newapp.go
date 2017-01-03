@@ -95,13 +95,13 @@ type AppConfig struct {
 
 	SkipGeneration bool
 
-	AllowSecretUse              bool
+	AllowSecretUse              bool  //?
 	AllowNonNumericExposedPorts bool
 	SecretAccessor              app.SecretAccessor
 
-	AsSearch bool
-	AsList   bool
-	DryRun   bool
+	AsSearch bool  //是否有--search
+	AsList   bool  //是否有--list
+	DryRun   bool  //是否有--dry-run
 
 	In     io.Reader
 	Out    io.Writer
@@ -109,7 +109,7 @@ type AppConfig struct {
 
 	KubeClient kclientset.Interface
 
-	Resolvers
+	Resolvers      //lgx 各种资源的查找器
 
 	Typer        runtime.ObjectTyper
 	Mapper       meta.RESTMapper
@@ -152,9 +152,10 @@ type QueryResult struct {
 // and flags have been parsed.
 func NewAppConfig() *AppConfig {
 	return &AppConfig{
+		//lgx 注意resolver的赋值, 其他的在哪里进行赋值??
 		Resolvers: Resolvers{
 			Detector: app.SourceRepositoryEnumerator{
-				Detectors:         source.DefaultDetectors,
+				Detectors:         source.DefaultDetectors,  //lgx 语言识别器
 				DockerfileTester:  dockerfile.NewTester(),
 				JenkinsfileTester: jenkinsfile.NewTester(),
 			},
@@ -171,7 +172,7 @@ func (c *AppConfig) DockerRegistrySearcher() app.Searcher {
 
 func (c *AppConfig) ensureDockerSearch() {
 	if c.DockerSearcher == nil {
-		c.DockerSearcher = c.DockerRegistrySearcher()
+		c.DockerSearcher = c.DockerRegistrySearcher()//赋值集成的dockerregistry client
 	}
 }
 
@@ -222,6 +223,8 @@ func (c *AppConfig) SetOpenShiftClient(osclient client.Interface, OriginNamespac
 // AddArguments converts command line arguments into the appropriate bucket based on what they look like
 func (c *AppConfig) AddArguments(args []string) []string {
 	unknown := []string{}
+	fmt.Printf("args : %v\n", args)
+
 	for _, s := range args {
 		switch {
 		case cmdutil.IsEnvironmentArgument(s):
@@ -245,6 +248,7 @@ func (c *AppConfig) AddArguments(args []string) []string {
 // validateBuilders confirms that all images associated with components that are to be built,
 // are builders (or we're using a non-source strategy).
 func (c *AppConfig) validateBuilders(components app.ComponentReferences) error {
+	//如果没有指明stragety，才会执行builder的判断
 	if c.Strategy != generate.StrategyUnspecified {
 		return nil
 	}
@@ -254,8 +258,16 @@ func (c *AppConfig) validateBuilders(components app.ComponentReferences) error {
 		// if we're supposed to build this thing, and the image/imagestream we've matched it to did not come from an explicit CLI argument,
 		// and the image/imagestream we matched to is not explicitly an s2i builder, and we're doing a source-type build, warn the user
 		// that this probably won't work and force them to declare their intention explicitly.
-		if input.ExpectToBuild && input.ResolvedMatch != nil && !app.IsBuilderMatch(input.ResolvedMatch) && input.Uses != nil && input.Uses.GetStrategy() == generate.StrategySource {
-			errs = append(errs, fmt.Errorf("the image match %q for source repository %q does not appear to be a source-to-image builder.\n\n- to attempt to use this image as a source builder, pass \"--strategy=source\"\n- to use it as a base image for a Docker build, pass \"--strategy=docker\"", input.ResolvedMatch.Name, input.Uses))
+		if input.ExpectToBuild &&
+			input.ResolvedMatch != nil &&
+			//解析builder buidlerimage  builderimagestream
+			!app.IsBuilderMatch(input.ResolvedMatch) &&
+			input.Uses != nil &&
+			input.Uses.GetStrategy() == generate.StrategySource {
+			errs = append(errs, fmt.Errorf("the image match %q for source repository %q does not appear to be a source-to-image builder.\n\n- / " +
+				"to attempt to use this image as a source builder, pass \"--strategy=source\"\n- / " +
+				"to use it as a base image for a Docker build, pass \"--strategy=docker\"",
+				input.ResolvedMatch.Name, input.Uses))
 			continue
 		}
 	}
@@ -508,7 +520,7 @@ func (c *AppConfig) RunQuery() (*QueryResult, error) {
 		return nil, err
 	}
 	// TODO: I don't belong here
-	c.ensureDockerSearch()
+	c.ensureDockerSearch()//如果没有sercher，赋值内置的registry client
 
 	if c.AsList {
 		if c.AsSearch {
@@ -517,10 +529,11 @@ func (c *AppConfig) RunQuery() (*QueryResult, error) {
 		if c.HasArguments() {
 			return nil, errors.New("--list can't be used with arguments")
 		}
-		c.Components = append(c.Components, "*")
+		c.Components = append(c.Components, "*") // ??
 	}
 
 	b := &app.ReferenceBuilder{}
+	// 比较复杂的函数 要单独的进行详细的分析
 	if err := AddComponentInputsToRefBuilder(b, &c.Resolvers, &c.ComponentInputs, &c.GenerationInputs); err != nil {
 		return nil, err
 	}
@@ -624,7 +637,7 @@ func (c *AppConfig) Run() (*AppResult, error) {
 	}
 	// TODO: I don't belong here
 	c.ensureDockerSearch()
-
+	//Resolve比较重要，消息了解一下, 为什么要resolve??
 	resolved, err := Resolve(&c.Resolvers, &c.ComponentInputs, &c.GenerationInputs)
 	if err != nil {
 		return nil, err
@@ -942,6 +955,7 @@ func (c *AppConfig) GetBuildEnvironment() app.Environment {
 }
 
 func optionallyValidateExposedPorts(config *AppConfig, repositories app.SourceRepositories) error {
+	//lgx only oc new-build 使用
 	if config.AllowNonNumericExposedPorts {
 		return nil
 	}

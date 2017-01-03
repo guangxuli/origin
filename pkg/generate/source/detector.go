@@ -17,6 +17,7 @@ type DetectorFunc func(dir string) *Info
 type Detectors []DetectorFunc
 
 // DefafultDetectors is a default set of Detector functions
+//lgx 语言识别器
 var DefaultDetectors = Detectors{
 	DetectRuby,
 	DetectJava,

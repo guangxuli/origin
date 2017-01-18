@@ -247,7 +247,7 @@ func (o *NewAppOptions) Complete(baseName, commandName string, f *clientcmd.Fact
 func (o *NewAppOptions) RunNewApp() error {
 	config := o.Config
 	out := o.Out
-	fmt.Printf("-------------------------------debug1")
+	fmt.Printf("---------------------------------------------------------------------------------debug1\n\n")
 	if config.Querying() {
 		result, err := config.RunQuery()
 		if err != nil {
@@ -260,10 +260,10 @@ func (o *NewAppOptions) RunNewApp() error {
 
 		return printHumanReadableQueryResult(result, out, o.BaseName, o.CommandName)
 	}
-	fmt.Printf("-------------------------------debug2")
+	fmt.Printf("---------------------------------------------------------------------------------debug2\n\n")
 	checkGitInstalled(out)
 
-	result, err := config.Run()
+	result, err := config.Run() //lgx 应该是创建对象
 	if err := handleRunError(err, o.BaseName, o.CommandName, o.CommandPath); err != nil {
 		return err
 	}
@@ -272,7 +272,7 @@ func (o *NewAppOptions) RunNewApp() error {
 	if err := setLabels(config.Labels, result); err != nil {
 		return err
 	}
-	fmt.Printf("-------------------------------debug3")
+	fmt.Printf("---------------------------------------------------------------------------------debug3\n\n")
 	if len(result.Name) > 0 {
 		// only set the computed implicit "app" label on objects if no object we've produced
 		// already has the "app" label.
@@ -300,10 +300,10 @@ func (o *NewAppOptions) RunNewApp() error {
 		o.Action.Compact()
 	}
 
-	if errs := o.Action.WithMessage(configcmd.CreateMessage(config.Labels), "created").Run(result.List, result.Namespace); len(errs) > 0 {
+	if errs := o.Action.WithMessage(configcmd.CreateMessage(config.Labels), "created").Run(result.List, result.Namespace); len(errs) > 0 { //lgx 应该是发送对象
 		return cmdutil.ErrExit
 	}
-	fmt.Printf("-------------------------------debug4")
+	fmt.Printf("---------------------------------------------------------------------------------debug4\n\n")
 	if !o.Action.Verbose() || o.Action.DryRun {
 		return nil
 	}

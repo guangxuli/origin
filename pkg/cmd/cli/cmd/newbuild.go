@@ -87,8 +87,8 @@ type NewBuildOptions struct {
 	Config *newcmd.AppConfig
 
 	BaseName    string
-	CommandPath stringstring
-	CommandName
+	CommandPath string
+	CommandName string
 
 	In            io.Reader
 	Out, ErrOut   io.Writer

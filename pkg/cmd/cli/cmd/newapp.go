@@ -224,7 +224,7 @@ func (o *NewAppOptions) Complete(baseName, commandName string, f *clientcmd.Fact
 
 	o.Config.DryRun = o.Action.DryRun
 
-	cmdutil.WarnAboutCommaSeparation(o.ErrOut, o.Config.Environment, "--env")
+	cmdutil.WarnAboutCommaSeparation(o.ErrOut, o.Config.Environment, "--env")//lgx 成对的赋值，检测参数要符合正在表达式的定义
 	cmdutil.WarnAboutCommaSeparation(o.ErrOut, o.Config.BuildEnvironment, "--build-env")
 	cmdutil.WarnAboutCommaSeparation(o.ErrOut, o.Config.TemplateParameters, "--param")
 
@@ -247,7 +247,7 @@ func (o *NewAppOptions) Complete(baseName, commandName string, f *clientcmd.Fact
 func (o *NewAppOptions) RunNewApp() error {
 	config := o.Config
 	out := o.Out
-
+	fmt.Printf("-------------------------------debug1")
 	if config.Querying() {
 		result, err := config.RunQuery()
 		if err != nil {
@@ -260,7 +260,7 @@ func (o *NewAppOptions) RunNewApp() error {
 
 		return printHumanReadableQueryResult(result, out, o.BaseName, o.CommandName)
 	}
-
+	fmt.Printf("-------------------------------debug2")
 	checkGitInstalled(out)
 
 	result, err := config.Run()
@@ -272,7 +272,7 @@ func (o *NewAppOptions) RunNewApp() error {
 	if err := setLabels(config.Labels, result); err != nil {
 		return err
 	}
-
+	fmt.Printf("-------------------------------debug3")
 	if len(result.Name) > 0 {
 		// only set the computed implicit "app" label on objects if no object we've produced
 		// already has the "app" label.
@@ -303,7 +303,7 @@ func (o *NewAppOptions) RunNewApp() error {
 	if errs := o.Action.WithMessage(configcmd.CreateMessage(config.Labels), "created").Run(result.List, result.Namespace); len(errs) > 0 {
 		return cmdutil.ErrExit
 	}
-
+	fmt.Printf("-------------------------------debug4")
 	if !o.Action.Verbose() || o.Action.DryRun {
 		return nil
 	}
